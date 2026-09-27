@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>פורמט אוסף פסיקה · פנקס חוק</title>
+<meta name="description" content="הפורמט של קובץ JSON לאוסף פסקי דין שמייבאים לאפליקציה פנקס חוק, מקובץ או מקישור מתעדכן.">
+<link rel="stylesheet" href="style.css">
+<style>
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: start; vertical-align: top; padding: 8px 6px; border-top: 1px solid var(--line); }
+  th { color: var(--ink2); font-weight: 600; }
+  code { font-family: ui-monospace, Menlo, monospace; font-size: 14px; direction: ltr; unicode-bidi: isolate; }
+  td:first-child code { color: var(--navy); font-weight: 600; }
+  pre { direction: ltr; text-align: left; overflow-x: auto; background: var(--card); border: 1px solid var(--line);
+        border-radius: 14px; padding: 14px; font-size: 13px; line-height: 1.5; }
+  .req { color: var(--gold); font-size: 13px; font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1>פורמט אוסף פסיקה</h1>
+  <p class="muted">גרסה 1 · לאפליקציה ״פנקס חוק״</p>
+  <nav>
+    <a href="rulings-editor.html">כלי העריכה המקומי</a>
+    <a href="index.html">לדף הראשי</a>
+  </nav>
+
+  <p>אוסף הוא קובץ JSON עם רשימת פסקי דין. באפליקציה: לשונית פסיקה ← + ← <b>ייבוא מקובץ JSON</b>, או <b>הוספה מקישור מתעדכן</b>.</p>
+  <ul>
+    <li><b>מקובץ:</b> הקובץ נשמר במכשיר ואינו נשלח לשום מקום. כדי לעדכן, מייבאים שוב קובץ עם אותו <code>id</code>, והוא מחליף את הקודם.</li>
+    <li><b>מקישור:</b> כתובת https שמחזירה את הקובץ. האפליקציה בודקת אותה כל כמה שעות ובמשיכה לרענון, ושומרת עותק במכשיר לשימוש בלי אינטרנט. אם ההורדה נכשלת או שהקובץ לא תקין, העותק השמור נשאר. השרת שמארח את הקובץ רואה את הבקשות.</li>
+  </ul>
+  <p>את הקובץ אפשר לכתוב ב<a href="rulings-editor.html">כלי העריכה המקומי</a>, שפועל כולו בדפדפן ולא שולח שום מידע, או להפיק מכל מערכת אחרת.</p>
+
+  <h2>שדות האוסף</h2>
+  <table>
+    <tr><th>שדה</th><th>תיאור</th></tr>
+    <tr><td><code>rulings</code> <span class="req">חובה</span></td><td>רשימת פסקי הדין (מערך).</td></tr>
+    <tr><td><code>title</code></td><td>שם האוסף, כפי שיוצג באפליקציה. בלעדיו משמש שם הקובץ או שם האתר.</td></tr>
+    <tr><td><code>id</code></td><td>מזהה קבוע לאוסף. ייבוא חוזר של קובץ עם אותו <code>id</code> מחליף את האוסף.</td></tr>
+    <tr><td><code>description</code></td><td>תיאור קצר.</td></tr>
+    <tr><td><code>updated</code></td><td>תאריך העדכון, למשל <code>2026-09-27</code>.</td></tr>
+    <tr><td><code>topics</code></td><td>סדר הנושאים (מערך של שמות). בלעדיו, הנושאים מוצגים לפי הסדר שבו הם מופיעים לראשונה.</td></tr>
+    <tr><td><code>format</code>, <code>version</code></td><td>סימון: <code>"pinkas-hok/rulings"</code> ו-<code>1</code>. לא חובה.</td></tr>
+  </table>
+
+  <h2>שדות של כל פסק דין</h2>
+  <table>
+    <tr><th>שדה</th><th>תיאור</th></tr>
+    <tr><td><code>title</code> <span class="req">חובה</span></td><td>ההלכה או העיקר בשורה אחת. פסק דין בלי <code>title</code> מדולג.</td></tr>
+    <tr><td><code>id</code></td><td>מזהה קבוע. מומלץ מאוד: בלעדיו משמש מספר התיק, ומועדפים עלולים להתבלבל כשהקובץ משתנה.</td></tr>
+    <tr><td><code>caseRef</code></td><td>מספר התיק, למשל <code>בש"פ 2215/24</code>.</td></tr>
+    <tr><td><code>parties</code></td><td>הצדדים, למשל <code>פלוני נ' מדינת ישראל</code>.</td></tr>
+    <tr><td><code>court</code></td><td>הערכאה.</td></tr>
+    <tr><td><code>judges</code></td><td>השופטים.</td></tr>
+    <tr><td><code>date</code></td><td>תאריך ההחלטה: <code>2024-04-30</code> או <code>30.4.2024</code>.</td></tr>
+    <tr><td><code>topic</code></td><td>נושא.</td></tr>
+    <tr><td><code>subtopic</code></td><td>תת-נושא בתוך הנושא.</td></tr>
+    <tr><td><code>tags</code></td><td>תגיות: מערך, או מחרוזת מופרדת בפסיקים.</td></tr>
+    <tr><td><code>principle</code></td><td>העיקרון המשפטי (ציטוט).</td></tr>
+    <tr><td><code>summary</code></td><td>סיכום.</td></tr>
+    <tr><td><code>note</code></td><td>הערה.</td></tr>
+    <tr><td><code>url</code></td><td>קישור https לפסק הדין המלא. קובץ PDF נפתח באפליקציה ונשמר במכשיר; דף אחר נפתח בתצוגה. קישור יחסי נקבע ביחס לכתובת האוסף.</td></tr>
+    <tr><td><code>related</code></td><td>מזהים (<code>id</code>) של פסקי דין קשורים באותו אוסף, למשל ערכאה קודמת.</td></tr>
+  </table>
+
+  <h2>כללים</h2>
+  <ul>
+    <li>קובץ JSON בקידוד UTF-8, עד 50MB. שדות שאינם ברשימה מתעלמים מהם.</li>
+    <li>אפשר גם קובץ שכולו רשימה של פסקי דין, בלי האובייקט העוטף.</li>
+    <li>בקישור מתעדכן, האפליקציה שולחת <code>If-None-Match</code> ו-<code>If-Modified-Since</code>. שרת שמחזיר <code>ETag</code> ו-<code>304</code> חוסך הורדות.</li>
+    <li>קישורי שיתוף של Dropbox, ‏GitHub ו-Google Drive מומרים אוטומטית לקישור הורדה ישיר.</li>
+  </ul>
+
+  <h2>דוגמה</h2>
+<pre>{
+  "format": "pinkas-hok/rulings",
+  "version": 1,
+  "id": "arrests",
+  "title": "פסיקה מעצרים",
+  "description": "פסיקה נבחרת בהליכי מעצר",
+  "updated": "2026-09-27",
+  "topics": ["ראיות לכאורה", "חלופות מעצר"],
+  "rulings": [
+    {
+      "id": "bsp-2215-24",
+      "title": "מבחן 'אם נאמין' חל על ראיות התביעה ואינו מחייב קבלת גרסת הנאשם",
+      "caseRef": "בש\"פ 2215/24",
+      "parties": "מוחמד נאסר נ' מדינת ישראל",
+      "court": "בית המשפט העליון",
+      "judges": "י' אלרון",
+      "date": "2024-04-30",
+      "topic": "ראיות לכאורה",
+      "subtopic": "בחינת ראיות לכאורה",
+      "tags": ["מבחן אם נאמין"],
+      "principle": "מבחן 'אם נאמין' מתייחס לאמינות ראיות התביעה…",
+      "summary": "הערר נדחה…",
+      "url": "https://example.com/rulings/2215-24.pdf",
+      "related": []
+    }
+  ]
+}</pre>
+</main>
+</body>
+</html>

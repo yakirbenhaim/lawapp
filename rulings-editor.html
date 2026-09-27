@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Privacy: this page may not load or send anything over the network. Everything stays in this browser. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>עורך אוסף פסיקה · פנקס חוק</title>
+<style>
+  :root {
+    --paper: #F7F7F4; --card: #FFFFFF; --ink: #1E2126; --ink2: #5F636A; --navy: #3B5B82;
+    --line: #E7E6E1; --gold: #7A5C1E; --danger: #B0261E; --tint: rgba(59, 91, 130, .08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --paper: #111214; --card: #1B1C1F; --ink: #E6E3DE; --ink2: #9C9FA5; --navy: #A9BEDF;
+            --line: #2A2B2F; --gold: #D9BF85; --danger: #FF8C82; --tint: rgba(169, 190, 223, .10); }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+         font: 16px/1.6 -apple-system, "SF Hebrew", "Segoe UI", Arial, sans-serif; }
+  header.top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 18px 20px 6px; max-width: 1200px; margin: 0 auto; }
+  header.top h1 { font-size: 22px; margin: 0; flex: 1; min-width: 220px; }
+  .privacy { max-width: 1200px; margin: 0 auto; padding: 0 20px; color: var(--ink2); font-size: 14px; }
+  .layout { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 18px; max-width: 1200px; margin: 14px auto; padding: 0 20px 40px; }
+  @media (max-width: 820px) { .layout { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 16px; }
+  .card + .card { margin-top: 14px; }
+  h2 { font-size: 15px; margin: 0 0 10px; color: var(--navy); }
+  label { display: block; font-size: 13px; color: var(--ink2); margin: 10px 0 4px; }
+  label .req { color: var(--gold); font-weight: 600; }
+  input, textarea, select { width: 100%; font: inherit; color: var(--ink); background: var(--paper);
+    border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+  textarea { min-height: 70px; resize: vertical; }
+  textarea.tall { min-height: 130px; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--navy); outline-offset: -1px; }
+  .ltr { direction: ltr; text-align: left; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+  button { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--navy);
+    border-radius: 999px; padding: 7px 14px; cursor: pointer; }
+  button.primary { background: var(--navy); color: var(--card); border-color: var(--navy); }
+  button.danger { color: var(--danger); }
+  button:disabled { opacity: .45; cursor: default; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
+  .list { list-style: none; margin: 10px 0 0; padding: 0; max-height: 62vh; overflow: auto; }
+  .list li { padding: 9px 10px; border-radius: 12px; cursor: pointer; }
+  .list li + li { border-top: 1px solid var(--line); }
+  .list li.selected { background: var(--tint); }
+  .list .t { font-weight: 600; }
+  .list .m { font-size: 13px; color: var(--ink2); }
+  .list .warn { color: var(--danger); font-size: 13px; }
+  .muted { color: var(--ink2); font-size: 14px; }
+  .topics { list-style: none; padding: 0; margin: 8px 0 0; }
+  .topics li { display: flex; align-items: center; gap: 6px; padding: 4px 0; }
+  .topics li span { flex: 1; }
+  .topics button { padding: 2px 9px; }
+  .empty { text-align: center; color: var(--ink2); padding: 40px 10px; }
+  .status { position: fixed; bottom: 18px; inset-inline: 0; margin: 0 auto; width: fit-content; max-width: 90vw;
+    background: var(--ink); color: var(--paper); padding: 9px 16px; border-radius: 999px; font-size: 14px;
+    opacity: 0; transition: opacity .25s; pointer-events: none; }
+  .status.show { opacity: 1; }
+  a { color: var(--navy); }
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>עורך אוסף פסיקה</h1>
+  <div class="toolbar">
+    <button id="open">פתיחת קובץ JSON</button>
+    <button id="export" class="primary">ייצוא JSON</button>
+    <button id="reset" class="danger">התחלה מחדש</button>
+    <input type="file" id="file" accept=".json,application/json" hidden>
+  </div>
+</header>
+<p class="privacy">
+  הכל נשמר רק בדפדפן הזה, במחשב הזה. הדף לא שולח ולא טוען שום דבר מהרשת (נחסם ברמת הדפדפן), ואפשר גם לשמור אותו למחשב ולפתוח בלי אינטרנט.
+  את הקובץ שמייצאים מעבירים לאייפון (AirDrop או Files) ומייבאים ב"פנקס חוק": פסיקה ← + ← ייבוא מקובץ JSON.
+  <a href="rulings-format.html">הפורמט</a>
+</p>
+
+<div class="layout">
+  <aside>
+    <section class="card">
+      <h2>האוסף</h2>
+      <label for="c-title">שם האוסף</label>
+      <input id="c-title" placeholder="למשל: פסיקה מעצרים">
+      <label for="c-id">מזהה (id)</label>
+      <input id="c-id" class="ltr" placeholder="arrests">
+      <label for="c-description">תיאור</label>
+      <input id="c-description">
+      <label>נושאים, לפי הסדר באפליקציה</label>
+      <ul class="topics" id="topics"></ul>
+      <p class="muted" id="no-topics">הנושאים נוספים מתוך פסקי הדין.</p>
+    </section>
+
+    <section class="card">
+      <div class="toolbar">
+        <button id="add" class="primary">פסק דין חדש</button>
+      </div>
+      <label for="search">חיפוש</label>
+      <input id="search" placeholder="כותרת, מספר תיק, צדדים, תגית…">
+      <label for="filter">נושא</label>
+      <select id="filter"></select>
+      <ul class="list" id="list"></ul>
+      <p class="muted" id="count"></p>
+    </section>
+  </aside>
+
+  <main>
+    <section class="card" id="editor"></section>
+  </main>
+</div>
+<div class="status" id="status" role="status"></div>
+
+<script>
+"use strict";
+const KEY = "pinkas-hok.rulings-editor.v1";
+const $ = (id) => document.getElementById(id);
+
+// ---------- State ----------
+
+let state = load() || { id: "", title: "", description: "", topics: [], rulings: [] };
+let selectedIndex = state.rulings.length ? 0 : -1;
+
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; }
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch { flash("לא ניתן לשמור בדפדפן. ייצאו קובץ כדי לא לאבד שינויים."); }
+}
+function flash(text) {
+  const el = $("status");
+  el.textContent = text;
+  el.classList.add("show");
+  clearTimeout(flash.timer);
+  flash.timer = setTimeout(() => el.classList.remove("show"), 2600);
+}
+function blankRuling() {
+  return { id: "", title: "", caseRef: "", parties: "", court: "", judges: "", date: "", topic: "", subtopic: "",
+           tags: [], principle: "", summary: "", note: "", url: "", related: [] };
+}
+
+// ---------- Reading a file (same leniency as the app) ----------
+
+function str(v) { return typeof v === "string" ? v.trim() : (typeof v === "number" ? String(v) : ""); }
+function list(v) {
+  if (Array.isArray(v)) return v.map(str).filter(Boolean);
+  if (typeof v === "string") return v.split(",").map((s) => s.trim()).filter(Boolean);
+  return [];
+}
+function isoDate(raw) {
+  const text = str(raw);
+  if (/^\d{4}-\d{2}-\d{2}/.test(text)) return text.slice(0, 10);
+  const p = text.split(/[./]/).map(Number);
+  if (p.length !== 3 || p.some(isNaN) || p[0] < 1 || p[0] > 31 || p[1] < 1 || p[1] > 12) return "";
+  const year = p[2] < 100 ? p[2] + 2000 : p[2];
+  return `${year}-${String(p[1]).padStart(2, "0")}-${String(p[0]).padStart(2, "0")}`;
+}
+function fromFile(json, fileName) {
+  const root = Array.isArray(json) ? {} : (json || {});
+  const items = Array.isArray(json) ? json : root.rulings;
+  if (!Array.isArray(items)) throw new Error('לא נמצא בקובץ מערך "rulings".');
+  const rulings = items.filter((x) => x && typeof x === "object").map((x) => ({
+    id: str(x.id), title: str(x.title || x.headline), caseRef: str(x.caseRef), parties: str(x.parties),
+    court: str(x.court), judges: str(x.judges), date: isoDate(x.date), topic: str(x.topic), subtopic: str(x.subtopic),
+    tags: list(x.tags), principle: str(x.principle), summary: str(x.summary), note: str(x.note),
+    url: str(x.url), related: list(x.related),
+  }));
+  return { id: str(root.id), title: str(root.title) || fileName, description: str(root.description),
+           topics: list(root.topics), rulings };
+}
+
+// ---------- Writing the file ----------
+
+function slug(text) {
+  return text.normalize("NFKD").replace(/["'״׳]/g, "").replace(/[^\w֐-׿]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
+}
+/** Every ruling gets a stable id (kept once set), so favorites in the app survive edits. */
+function ensureIds() {
+  const used = new Set();
+  for (const r of state.rulings) {
+    let id = r.id || slug(r.caseRef) || slug(r.title).slice(0, 40) || "ruling";
+    const base = id;
+    for (let n = 2; used.has(id); n++) id = `${base}-${n}`;
+    r.id = id;
+    used.add(id);
+  }
+}
+function topicOrder() {
+  const order = state.topics.filter((t) => state.rulings.some((r) => r.topic === t));
+  for (const r of state.rulings) if (r.topic && !order.includes(r.topic)) order.push(r.topic);
+  return order;
+}
+function toFile() {
+  ensureIds();
+  const clean = (r) => {
+    const out = {};
+    for (const [k, v] of Object.entries(r)) {
+      if (Array.isArray(v) ? v.length : v) out[k] = v;
+    }
+    return out;
+  };
+  return {
+    format: "pinkas-hok/rulings",
+    version: 1,
+    id: state.id || slug(state.title) || undefined,
+    title: state.title || "אוסף פסיקה",
+    description: state.description || undefined,
+    updated: new Date().toISOString().slice(0, 10),
+    topics: topicOrder(),
+    rulings: state.rulings.filter((r) => r.title).map(clean),
+  };
+}
+
+// ---------- Rendering ----------
+
+function renderCollection() {
+  $("c-title").value = state.title;
+  $("c-id").value = state.id;
+  $("c-description").value = state.description;
+  state.topics = topicOrder();
+  const ul = $("topics");
+  ul.innerHTML = "";
+  state.topics.forEach((topic, i) => {
+    const li = document.createElement("li");
+    const name = document.createElement("span");
+    name.textContent = `${topic} (${state.rulings.filter((r) => r.topic === topic).length})`;
+    const up = button("▲", () => moveTopic(i, -1), i === 0, "הזזה למעלה");
+    const down = button("▼", () => moveTopic(i, 1), i === state.topics.length - 1, "הזזה למטה");
+    li.append(name, up, down);
+    ul.append(li);
+  });
+  $("no-topics").hidden = state.topics.length > 0;
+
+  const filter = $("filter");
+  const current = filter.value;
+  filter.innerHTML = "";
+  filter.append(new Option("כל הנושאים", ""));
+  for (const t of state.topics) filter.append(new Option(t, t));
+  if (state.rulings.some((r) => !r.topic)) filter.append(new Option("ללא נושא", "\u0000"));
+  filter.value = [...filter.options].some((o) => o.value === current) ? current : "";
+}
+function button(text, onClick, disabled, label) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.textContent = text;
+  b.disabled = !!disabled;
+  if (label) b.setAttribute("aria-label", label);
+  b.addEventListener("click", onClick);
+  return b;
+}
+function moveTopic(index, delta) {
+  const t = state.topics;
+  [t[index], t[index + delta]] = [t[index + delta], t[index]];
+  save();
+  renderCollection();
+}
+function matches(r, query) {
+  if (!query) return true;
+  const hay = [r.title, r.caseRef, r.parties, r.court, r.judges, r.topic, r.subtopic, r.tags.join(" "), r.principle, r.summary, r.note]
+    .join(" ").replace(/[״"]/g, '"').toLowerCase();
+  return query.replace(/[״"]/g, '"').toLowerCase().split(/\s+/).filter(Boolean).every((w) => hay.includes(w));
+}
+function renderList() {
+  const query = $("search").value.trim();
+  const topic = $("filter").value;
+  const ids = new Map();
+  for (const r of state.rulings) if (r.id) ids.set(r.id, (ids.get(r.id) || 0) + 1);
+  const ul = $("list");
+  ul.innerHTML = "";
+  let shown = 0;
+  state.rulings.forEach((r, index) => {
+    if (topic === "\u0000" ? r.topic : topic && r.topic !== topic) return;
+    if (!matches(r, query)) return;
+    shown++;
+    const li = document.createElement("li");
+    li.className = index === selectedIndex ? "selected" : "";
+    const t = document.createElement("div");
+    t.className = "t";
+    t.textContent = r.title || "(בלי כותרת)";
+    const m = document.createElement("div");
+    m.className = "m";
+    m.textContent = [r.caseRef, r.topic, r.date && r.date.split("-").reverse().map(Number).join(".")].filter(Boolean).join(" · ");
+    li.append(t, m);
+    const problems = [];
+    if (!r.title) problems.push("חסרה כותרת, ולא ייכלל בקובץ");
+    if (r.id && ids.get(r.id) > 1) problems.push("מזהה כפול");
+    if (r.url && !/^https:\/\//i.test(r.url) && /^[a-z]+:/i.test(r.url)) problems.push("קישור צריך להתחיל ב-https");
+    if (problems.length) {
+      const w = document.createElement("div");
+      w.className = "warn";
+      w.textContent = problems.join(" · ");
+      li.append(w);
+    }
+    li.addEventListener("click", () => { selectedIndex = index; renderList(); renderEditor(); });
+    ul.append(li);
+  });
+  $("count").textContent = state.rulings.length
+    ? `${shown === state.rulings.length ? state.rulings.length : `${shown} מתוך ${state.rulings.length}`} פסקי דין`
+    : "";
+}
+
+const FIELDS = [
+  { key: "title", label: "כותרת", required: true, hint: "ההלכה או העיקר בשורה אחת" },
+  { row: [{ key: "caseRef", label: "מספר תיק", hint: 'בש"פ 2215/24' }, { key: "date", label: "תאריך", type: "date" }] },
+  { row: [{ key: "parties", label: "צדדים", hint: "פלוני נ' מדינת ישראל" }, { key: "court", label: "ערכאה", hint: "בית המשפט העליון" }] },
+  { key: "judges", label: "שופטים" },
+  { row: [{ key: "topic", label: "נושא", list: "topic-options" }, { key: "subtopic", label: "תת-נושא", list: "subtopic-options" }] },
+  { key: "tags", label: "תגיות (מופרדות בפסיקים)" },
+  { key: "principle", label: "עיקרון משפטי", area: "tall" },
+  { key: "summary", label: "סיכום", area: "tall" },
+  { key: "note", label: "הערה", area: "" },
+  { key: "url", label: "קישור לפסק הדין המלא (https)", ltr: true, hint: "https://…" },
+  { key: "related", label: "פסקי דין קשורים (מזהים, מופרדים בפסיקים)", ltr: true, list: "id-options" },
+  { key: "id", label: "מזהה (id). נקבע אוטומטית בייצוא, ואפשר לשנות", ltr: true },
+];
+
+function renderEditor() {
+  const box = $("editor");
+  box.innerHTML = "";
+  const r = state.rulings[selectedIndex];
+  if (!r) {
+    const p = document.createElement("div");
+    p.className = "empty";
+    p.textContent = state.rulings.length ? "בחרו פסק דין מהרשימה." : 'עדיין אין פסקי דין. לחצו "פסק דין חדש", או פתחו קובץ JSON קיים.';
+    box.append(p);
+    return;
+  }
+  const h = document.createElement("h2");
+  h.textContent = r.title || "פסק דין חדש";
+  box.append(h);
+
+  addDatalist(box, "topic-options", state.topics);
+  addDatalist(box, "subtopic-options", [...new Set(state.rulings.filter((x) => x.topic === r.topic).map((x) => x.subtopic).filter(Boolean))]);
+  addDatalist(box, "id-options", state.rulings.map((x) => x.id).filter((id) => id && id !== r.id));
+
+  const make = (f) => {
+    const wrap = document.createElement("div");
+    const label = document.createElement("label");
+    label.htmlFor = `f-${f.key}`;
+    label.textContent = f.label + " ";
+    if (f.required) { const s = document.createElement("span"); s.className = "req"; s.textContent = "חובה"; label.append(s); }
+    const input = f.area !== undefined ? document.createElement("textarea") : document.createElement("input");
+    if (f.area) input.className = f.area;
+    if (f.type) input.type = f.type;
+    if (f.ltr) input.classList.add("ltr");
+    if (f.hint) input.placeholder = f.hint;
+    if (f.list) input.setAttribute("list", f.list);
+    input.id = `f-${f.key}`;
+    input.value = Array.isArray(r[f.key]) ? r[f.key].join(", ") : r[f.key];
+    input.addEventListener("input", () => {
+      r[f.key] = Array.isArray(r[f.key]) ? list(input.value) : input.value.trim();
+      if (f.key === "title") h.textContent = r.title || "פסק דין חדש";
+      save();
+      renderList();
+    });
+    input.addEventListener("change", renderCollection);
+    wrap.append(label, input);
+    return wrap;
+  };
+  for (const f of FIELDS) {
+    if (f.row) {
+      const row = document.createElement("div");
+      row.className = "row";
+      for (const sub of f.row) row.append(make(sub));
+      box.append(row);
+    } else {
+      box.append(make(f));
+    }
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "toolbar";
+  actions.style.marginTop = "16px";
+  actions.append(
+    button("שכפול", () => {
+      const copy = { ...JSON.parse(JSON.stringify(r)), id: "", title: r.title ? `${r.title} (עותק)` : "" };
+      state.rulings.splice(selectedIndex + 1, 0, copy);
+      selectedIndex++;
+      save(); renderAll();
+    }),
+    Object.assign(button("מחיקה", () => {
+      if (!confirm("למחוק את פסק הדין?")) return;
+      state.rulings.splice(selectedIndex, 1);
+      selectedIndex = Math.min(selectedIndex, state.rulings.length - 1);
+      save(); renderAll();
+    }), { className: "danger" }),
+  );
+  box.append(actions);
+}
+function addDatalist(parent, id, values) {
+  const dl = document.createElement("datalist");
+  dl.id = id;
+  for (const v of values) dl.append(new Option(v));
+  parent.append(dl);
+}
+function renderAll() { renderCollection(); renderList(); renderEditor(); }
+
+// ---------- Actions ----------
+
+for (const key of ["title", "id", "description"]) {
+  $(`c-${key}`).addEventListener("input", (e) => { state[key] = e.target.value.trim(); save(); });
+}
+$("search").addEventListener("input", renderList);
+$("filter").addEventListener("change", renderList);
+$("add").addEventListener("click", () => {
+  const r = blankRuling();
+  r.topic = $("filter").value === "\u0000" ? "" : $("filter").value;
+  state.rulings.unshift(r);
+  selectedIndex = 0;
+  $("search").value = "";
+  save(); renderAll();
+  $("f-title").focus();
+});
+$("open").addEventListener("click", () => $("file").click());
+$("file").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if (!file) return;
+  try {
+    const incoming = fromFile(JSON.parse(await file.text()), file.name.replace(/\.json$/i, ""));
+    if (state.rulings.length && !confirm(`לפתוח את "${incoming.title}" (${incoming.rulings.length} פסקי דין) במקום האוסף הנוכחי? כדאי לייצא אותו קודם.`)) return;
+    state = incoming;
+    selectedIndex = state.rulings.length ? 0 : -1;
+    save(); renderAll();
+    flash(`נפתח: ${state.rulings.length} פסקי דין`);
+  } catch (error) {
+    alert(`לא ניתן לקרוא את הקובץ: ${error.message}`);
+  }
+});
+$("export").addEventListener("click", () => {
+  const data = toFile();
+  if (!data.rulings.length) { alert("אין פסקי דין עם כותרת לייצוא."); return; }
+  save(); renderAll();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${data.id || "rulings"}.json`;
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  const skipped = state.rulings.length - data.rulings.length;
+  flash(`יוצאו ${data.rulings.length} פסקי דין` + (skipped ? ` · ${skipped} בלי כותרת לא נכללו` : ""));
+});
+$("reset").addEventListener("click", () => {
+  if (!confirm("למחוק את כל האוסף מהדפדפן ולהתחיל מחדש? כדאי לייצא אותו קודם.")) return;
+  state = { id: "", title: "", description: "", topics: [], rulings: [] };
+  selectedIndex = -1;
+  save(); renderAll();
+});
+
+renderAll();
+</script>
+</body>
+</html>
